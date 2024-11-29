@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CreateContentDto, UpdateContentDto } from './dto/create-content.dto';
+import { PrismaServise } from 'src/database/prisma.service';
 
 @Injectable()
 export class ContentService {
+  constructor(private readonly prismaServise: PrismaServise) { }
   create(createContentDto: CreateContentDto) {
     return 'This action adds a new content';
   }
