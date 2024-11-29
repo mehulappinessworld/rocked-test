@@ -13,16 +13,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
 model Content {
   id                Int                 @id @default(autoincrement())
   code              String
   title             String
   url               String
-  status            String
+  status            ContentStatus   @default(DRAFT)
   description       String
   publish_date      DateTime
   thumbnail         String
-  tags              String
+  tags              Json?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   UsersContentWatch UsersContentWatch[]

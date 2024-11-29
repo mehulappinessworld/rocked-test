@@ -1,27 +1,92 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateContentDto, UpdateContentDto } from './dto/create-content.dto';
 import { PrismaServise } from 'src/database/prisma.service';
+import { ResponseType } from 'src/domain/helper';
 
 @Injectable()
 export class ContentService {
   constructor(private readonly prismaServise: PrismaServise) { }
-  create(createContentDto: CreateContentDto) {
-    return 'This action adds a new content';
+  async create(createContentDto: CreateContentDto) {
+    try {
+      const content = await this.prismaServise.content.create({
+        data: createContentDto
+      })
+      return {
+        status: ResponseType.SUCCESS,
+        data: content,
+        mesage: "Content Updated"
+      }
+    } catch (err) {
+      throw err
+    }
   }
-
-  findAll() {
-    return `This action returns all content`;
+  async findAll() {
+    try {
+      return await this.prismaServise.content.findMany();
+    } catch (err) {
+      throw err
+    }
   }
-
-  findOne(id: number) {
-    return `This action returns a #${id} content`;
+  async findOne(id: number) {
+    try {
+      const check = await this.prismaServise.content.findUnique({
+        where: {
+          id: +id
+        }
+      });
+      if (check) {
+        return check
+      } else {
+        throw new NotFoundException('Content not Found')
+      }
+    } catch (err) {
+      throw err
+    }
   }
-
-  update(id: number, updateContentDto: UpdateContentDto) {
-    return `This action updates a #${id} content`;
+  async update(id: number, updateContentDto: UpdateContentDto) {
+    try {
+      const check = await this.prismaServise.content.findUnique({
+        where: {
+          id: +id
+        }
+      });
+      if (check) {
+        await this.prismaServise.content.update({
+          where: {
+            id: +id
+          },
+          data: updateContentDto
+        });
+        return {
+          status: ResponseType.SUCCESS,
+          mesage: "Content Updated"
+        }
+      } else {
+        throw new NotFoundException('Content not Found')
+      }
+    } catch (err) {
+      throw err
+    }
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} content`;
+  async remove(id: number) {
+    try {
+      const check = await this.prismaServise.content.findUnique({
+        where: {
+          id: +id
+        }
+      });
+      if (check) {
+        const dleeted = await this.prismaServise.content.delete({
+          where: {
+            id: +id
+          }
+        });
+        return dleeted
+      } else {
+        throw new NotFoundException('Content not Found')
+      }
+    } catch (err) {
+      throw err
+    }
   }
 }

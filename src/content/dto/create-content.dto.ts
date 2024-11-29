@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { isDate, IsString } from "class-validator"
+import { ContentStatus } from "@prisma/client"
+import { IsString } from "class-validator"
 
 export class CreateContentDto {
     @ApiProperty()
@@ -14,9 +15,11 @@ export class CreateContentDto {
     @IsString()
     url: string
 
-    @ApiProperty()
+    @ApiProperty({
+        default: ContentStatus.DRAFT
+    })
     @IsString()
-    status: string
+    status: ContentStatus
 
     @ApiProperty()
     @IsString()
@@ -29,8 +32,45 @@ export class CreateContentDto {
     @IsString()
     thumbnail: string
 
-    @ApiProperty()
-    @IsString()
-    tags: string[]
+    @ApiProperty({
+        default: {
+            list: ["Tag1", "tag2"]
+        }
+    })
+    tags: any
+
+
+
 }
-export class UpdateContentDto extends CreateContentDto { }
+export class UpdateContentDto {
+    @ApiPropertyOptional()
+    code: string
+
+    @ApiPropertyOptional()
+    title: string
+
+    @ApiPropertyOptional()
+    url: string
+
+    @ApiPropertyOptional({
+        default: ContentStatus.DRAFT
+    })
+    status: ContentStatus
+
+    @ApiPropertyOptional()
+    description: string
+
+    @ApiPropertyOptional()
+    publish_date: Date
+
+    @ApiPropertyOptional()
+    thumbnail: string
+
+    @ApiPropertyOptional({
+        default: {
+            list: ["Tag1", "tag2"]
+        }
+    })
+    tags: any
+
+}
