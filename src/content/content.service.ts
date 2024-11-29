@@ -160,7 +160,17 @@ export class ContentService {
           where: {
             id: +id
           },
-          data: updateContentDto
+          data: {
+            ...updateContentDto,
+            ...(updateContentDto?.tags?.length > 0 ? {
+              tags: {
+                connectOrCreate: updateContentDto?.tags?.map((tag) => ({
+                  where: { name: tag },
+                  create: { name: tag }
+                }))
+              }
+            } : {})
+          }
         });
         return {
           status: ResponseType.SUCCESS,
