@@ -97,6 +97,7 @@ export class ContentService {
         where: where,
         include: {
           tags: true,
+          UsersContentWatch: true
         },
         orderBy: orderBy,
         ...(limit ? {

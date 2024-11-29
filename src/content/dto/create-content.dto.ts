@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { ContentStatus } from "@prisma/client"
-import { IsString } from "class-validator"
+import { IsString, IsUrl } from "class-validator"
 
 export enum OrderBYContent {
     TITLE = "title",
@@ -51,7 +51,7 @@ export class CreateContentDto {
     title: string
 
     @ApiProperty()
-    @IsString()
+    @IsUrl()
     url: string
 
     @ApiProperty({
