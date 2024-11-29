@@ -43,6 +43,35 @@ export class ContentService {
       throw err
     }
   }
+  async allWatched(id: number) {
+    try {
+      const check = await this.prismaServise.content.findUnique({
+        where: {
+          id: +id
+        },
+        select: {
+          UsersContentWatch: {
+            select: {
+              user: {
+                select: {
+                  email: true
+                }
+              }
+            }
+          }
+        }
+      });
+      if (check) {
+        return {
+          emails: (check).UsersContentWatch?.map((data) => data.user.email)
+        }
+      } else {
+        throw new NotFoundException('Content not Found')
+      }
+    } catch (err) {
+      throw err
+    }
+  }
   async update(id: number, updateContentDto: UpdateContentDto) {
     try {
       const check = await this.prismaServise.content.findUnique({
