@@ -150,6 +150,11 @@ export class ContentService {
           id: +id
         }
       });
+      if (updateContentDto.status) {
+        if (check.status == updateContentDto.status) {
+          throw new NotFoundException(`Content Already in ${updateContentDto.status} Sattus`)
+        }
+      }
       if (check) {
         await this.prismaServise.content.update({
           where: {
