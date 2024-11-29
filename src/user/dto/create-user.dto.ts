@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNumber, IsString } from "class-validator"
-import { PaginationDto } from "src/content/dto/create-content.dto";
+import { OrderBYContent, PaginationDto, SortBy } from "src/content/dto/create-content.dto";
 
 export class WatchUserDto {
     @ApiProperty()
@@ -26,7 +26,18 @@ export class GetContentFilterDto extends PaginationDto {
     @ApiPropertyOptional()
     end_date: Date
 
-    @ApiPropertyOptional()
-    tags: string
+    @ApiPropertyOptional({
+        default: ["Tag1"]
+    })
+    tags: string[]
 
+    @ApiPropertyOptional({
+        default: OrderBYContent.TITLE
+    })
+    orderBy: OrderBYContent
+
+    @ApiPropertyOptional({
+        default: SortBy.ASC
+    })
+    sortBy: SortBy
 }

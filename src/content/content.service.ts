@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateContentDto, GetContentFilterDto, UpdateContentDto } from './dto/create-content.dto';
+import { CreateContentDto, GetContentFilterDto, OrderBYContent, SortBy, UpdateContentDto } from './dto/create-content.dto';
 import { PrismaServise } from 'src/database/prisma.service';
 import { ResponseType } from 'src/domain/helper';
 import { Prisma } from "@prisma/client"
@@ -65,12 +65,24 @@ export class ContentService {
       // if (Object.keys(publish_date)?.length > 0) {
       //   where.publish_date = publish_date
       // }
-
+      let orderBy = {};
+      let sortBy = query.sortBy || SortBy.ASC;
+      if (query.orderBy == OrderBYContent.TITLE) {
+        orderBy = {
+          title: sortBy
+        }
+      }
+      if (query.orderBy == OrderBYContent.PUBLISH_DATE) {
+        orderBy = {
+          publish_date: sortBy
+        }
+      }
       const data = await this.prismaServise.content.findMany({
         where: where,
         include: {
           tags: true,
         },
+        orderBy: orderBy,
         take: limit,
         skip: offset
       });

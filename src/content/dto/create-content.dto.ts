@@ -2,6 +2,14 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { ContentStatus } from "@prisma/client"
 import { IsString } from "class-validator"
 
+export enum OrderBYContent {
+    TITLE = "title",
+    PUBLISH_DATE = "publish_date",
+}
+export enum SortBy {
+    ASC = "asc",
+    DESC = "desc"
+}
 export class PaginationDto {
     @ApiPropertyOptional()
     limit: number
@@ -21,6 +29,16 @@ export class GetContentFilterDto extends PaginationDto {
 
     @ApiPropertyOptional()
     end_date: Date
+
+    @ApiPropertyOptional({
+        default: OrderBYContent.TITLE
+    })
+    orderBy: OrderBYContent
+
+    @ApiPropertyOptional({
+        default: SortBy.ASC
+    })
+    sortBy: SortBy
 
 }
 export class CreateContentDto {

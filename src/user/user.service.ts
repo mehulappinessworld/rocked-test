@@ -3,6 +3,7 @@ import { GetContentFilterDto, WatchUserDto } from './dto/create-user.dto';
 import { PrismaServise } from 'src/database/prisma.service';
 import { ResponseType } from 'src/domain/helper';
 import { ContentStatus, Prisma } from '@prisma/client';
+import { OrderBYContent, SortBy } from 'src/content/dto/create-content.dto';
 
 @Injectable()
 export class UserService {
@@ -67,6 +68,23 @@ export class UserService {
       const page = +query.page || 1;
       const offset = ((page - 1) * limit)
 
+      let tags = query.tags;
+      if (typeof query.tags == 'string') {
+        tags = [query.tags]
+      }
+      let orderBy = {};
+      let sortBy = query.sortBy || SortBy.ASC;
+      if (query.orderBy == OrderBYContent.TITLE) {
+        orderBy = {
+          title: sortBy
+        }
+      }
+      if (query.orderBy == OrderBYContent.PUBLISH_DATE) {
+        orderBy = {
+          publish_date: sortBy
+        }
+      }
+
       //filter
       const where: Prisma.ContentWhereInput = {
         UsersContentWatch: {
@@ -81,6 +99,15 @@ export class UserService {
           title: {
             contains: query.title
           }
+        } : {}),
+        ...(tags?.length > 0 ? {
+          tags: {
+            some: {
+              name: {
+                in: tags
+              }
+            }
+          }
         } : {})
       }
 
@@ -94,8 +121,10 @@ export class UserService {
       const data = await this.prismaServise.content.findMany({
         where: where,
         include: {
-          UsersContentWatch: true
+          UsersContentWatch: true,
+          tags: true
         },
+        orderBy: orderBy,
         take: limit,
         skip: offset
       });
@@ -105,6 +134,7 @@ export class UserService {
         message: "Data Get Done"
       }
     } catch (err) {
+      console.log("err", err)
       throw new err
     }
   }
