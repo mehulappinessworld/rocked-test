@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { WatchUserDto } from './dto/create-user.dto';
+import { GetContentFilterDto, WatchUserDto } from './dto/create-user.dto';
 import { PrismaServise } from 'src/database/prisma.service';
 import { ResponseType } from 'src/domain/helper';
-import { ContentStatus } from '@prisma/client';
+import { ContentStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -60,16 +60,48 @@ export class UserService {
     }
   }
 
-  async findAll() {
+  async findAll(query: GetContentFilterDto) {
     try {
-      const contents = await this.prismaServise.content.findMany({
-        where: {
-          status: ContentStatus.PUBLISHED
+      //pagination
+      const limit = +query.limit || 3;
+      const page = +query.page || 1;
+      const offset = ((page - 1) * limit)
+
+      //filter
+      const where: Prisma.ContentWhereInput = {
+        UsersContentWatch: {
+          every: {
+            user: {
+              email: query.email
+            }
+          }
+        },
+        status: ContentStatus.PUBLISHED,
+        ...(query.title ? {
+          title: {
+            contains: query.title
+          }
+        } : {})
+      }
+
+      //date filter
+      if (query.strat_date && query.end_date) {
+        where.publish_date = {
+          gte: new Date(query.strat_date),
+          lte: new Date(query.end_date)
         }
+      }
+      const data = await this.prismaServise.content.findMany({
+        where: where,
+        include: {
+          UsersContentWatch: true
+        },
+        take: limit,
+        skip: offset
       });
       return {
         status: ResponseType.SUCCESS,
-        data: contents,
+        data: data,
         message: "Data Get Done"
       }
     } catch (err) {

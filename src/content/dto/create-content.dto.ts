@@ -2,6 +2,27 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { ContentStatus } from "@prisma/client"
 import { IsString } from "class-validator"
 
+export class PaginationDto {
+    @ApiPropertyOptional()
+    limit: number
+    @ApiPropertyOptional()
+    page: number
+}
+
+export class GetContentFilterDto extends PaginationDto {
+    @ApiPropertyOptional()
+    title: string
+
+    @ApiPropertyOptional({})
+    status: ContentStatus
+
+    @ApiPropertyOptional()
+    strat_date: Date
+
+    @ApiPropertyOptional()
+    end_date: Date
+
+}
 export class CreateContentDto {
     @ApiProperty()
     @IsString()
@@ -33,14 +54,9 @@ export class CreateContentDto {
     thumbnail: string
 
     @ApiProperty({
-        default: {
-            list: ["Tag1", "tag2"]
-        }
+        default: ["Tag1", "tag2"]
     })
-    tags: any
-
-
-
+    tags: string[]
 }
 export class UpdateContentDto {
     @ApiPropertyOptional()

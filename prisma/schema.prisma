@@ -27,11 +27,10 @@ model Content {
   description       String
   publish_date      DateTime
   thumbnail         String
-  tags              Json?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   UsersContentWatch UsersContentWatch[]
-
+  tags              Tags[] @relation("ContentTags")
   @@map("contents")
 }
 
@@ -43,6 +42,14 @@ model User {
   UsersContentWatch UsersContentWatch[]
 
   @@map("users")
+}
+
+
+model Tags {
+  id                Int                 @id @default(autoincrement())
+  name              String              @unique
+  content           Content[]           @relation("ContentTags")
+  @@map("ContentTags")
 }
 
 model UsersContentWatch {

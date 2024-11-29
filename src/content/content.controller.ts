@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ContentService } from './content.service';
-import { CreateContentDto, UpdateContentDto } from './dto/create-content.dto';
+import { CreateContentDto, GetContentFilterDto, UpdateContentDto } from './dto/create-content.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags("Content")
+@ApiTags("Admin-Content")
 @Controller('content')
 export class ContentController {
   constructor(private readonly contentService: ContentService) { }
@@ -14,8 +14,8 @@ export class ContentController {
   }
 
   @Get()
-  findAll() {
-    return this.contentService.findAll();
+  findAll(@Query() query: GetContentFilterDto) {
+    return this.contentService.findAll(query);
   }
 
   @Get(':id')

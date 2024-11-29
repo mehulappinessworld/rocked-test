@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateContentDto, UpdateContentDto } from './dto/create-content.dto';
+import { CreateContentDto, GetContentFilterDto, UpdateContentDto } from './dto/create-content.dto';
 import { PrismaServise } from 'src/database/prisma.service';
 import { ResponseType } from 'src/domain/helper';
+import { Prisma } from "@prisma/client"
 
 @Injectable()
 export class ContentService {
@@ -9,7 +10,15 @@ export class ContentService {
   async create(createContentDto: CreateContentDto) {
     try {
       const content = await this.prismaServise.content.create({
-        data: createContentDto
+        data: {
+          ...createContentDto,
+          tags: {
+            connectOrCreate: createContentDto?.tags?.map((tag) => ({
+              where: { name: tag },
+              create: { name: tag }
+            }))
+          }
+        }
       })
       return {
         status: ResponseType.SUCCESS,
@@ -20,9 +29,56 @@ export class ContentService {
       throw err
     }
   }
-  async findAll() {
+  async findAll(query: GetContentFilterDto) {
     try {
-      return await this.prismaServise.content.findMany();
+      //pagination
+      const limit = +query.limit || 3;
+      const page = +query.page || 1;
+      const offset = ((page - 1) * limit)
+
+      //filter
+      const where: Prisma.ContentWhereInput = {
+        ...(query.title ? {
+          title: {
+            contains: query.title,
+          }
+        } : {}),
+        ...(query.status ? {
+          status: query.status
+        } : {}),
+      }
+
+      //date filter
+      if (query.strat_date && query.end_date) {
+        where.publish_date = {
+          gte: new Date(query.strat_date),
+          lte: new Date(query.end_date)
+        }
+      }
+      // let publish_date: any = {}
+      // if (query.end_date) {
+      //   publish_date = {
+      //     ...publish_date,
+      //     lte: new Date(query.end_date)
+      //   }
+      // }
+      // if (Object.keys(publish_date)?.length > 0) {
+      //   where.publish_date = publish_date
+      // }
+
+      const data = await this.prismaServise.content.findMany({
+        where: where,
+        include: {
+          tags: true,
+        },
+        take: limit,
+        skip: offset
+      });
+      return {
+        status: ResponseType.SUCCESS,
+        data: data,
+        message: "Data Get Done"
+      }
     } catch (err) {
       throw err
     }
@@ -32,7 +88,10 @@ export class ContentService {
       const check = await this.prismaServise.content.findUnique({
         where: {
           id: +id
-        }
+        },
+        include: {
+          tags: true,
+        },
       });
       if (check) {
         return check
