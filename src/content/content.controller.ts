@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ContentService } from './content.service';
-import { CreateContentDto, GetContentFilterDto, UpdateContentDto } from './dto/create-content.dto';
+import { AllContentDto, CreateContentDto, GetContentFilterDto, UpdateContentDto } from './dto/create-content.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags("Admin-Content")
@@ -34,8 +34,8 @@ export class ContentController {
   }
 
   @Get('allWatched/:id')
-  allWatched(@Param('id') id: number) {
-    return this.contentService.allWatched(+id);
+  allWatched(@Param('id') id: number, @Query() email: AllContentDto) {
+    return this.contentService.allWatched(+id, email);
   }
 
 }

@@ -21,7 +21,7 @@ enum ContentStatus {
 model Content {
   id                Int                 @id @default(autoincrement())
   code              String
-  title             String
+  title             String          @unique
   url               String
   status            ContentStatus   @default(DRAFT)
   description       String

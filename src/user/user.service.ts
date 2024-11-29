@@ -18,6 +18,9 @@ export class UserService {
       if (!checkContent) {
         throw new NotFoundException("Content Not Found");
       }
+      if (checkContent?.status == ContentStatus.DRAFT) {
+        throw new NotFoundException("Content is Not Published Yet");
+      }
       let checkUser = await this.prismaServise.user.findUnique({
         where: {
           email: watchUserDto.email
@@ -57,16 +60,15 @@ export class UserService {
         message: "Added Into Watched"
       }
     } catch (err) {
-      throw new err
+      throw err
     }
   }
-
   async findAll(query: GetContentFilterDto) {
     try {
       //pagination
-      const limit = +query.limit || 3;
-      const page = +query.page || 1;
-      const offset = ((page - 1) * limit)
+      const limit = +query.limit || null;
+      const page = +query.page || null;
+      const offset = (((page || 0) - 1) * limit)
 
       let tags = query.tags;
       if (typeof query.tags == 'string') {
@@ -87,13 +89,6 @@ export class UserService {
 
       //filter
       const where: Prisma.ContentWhereInput = {
-        UsersContentWatch: {
-          every: {
-            user: {
-              email: query.email
-            }
-          }
-        },
         status: ContentStatus.PUBLISHED,
         ...(query.title ? {
           title: {
@@ -121,12 +116,20 @@ export class UserService {
       const data = await this.prismaServise.content.findMany({
         where: where,
         include: {
-          UsersContentWatch: true,
+          UsersContentWatch: {
+            where: {
+              user: {
+                email: query.email
+              }
+            }
+          },
           tags: true
         },
         orderBy: orderBy,
-        take: limit,
-        skip: offset
+        ...(limit ? {
+          take: limit,
+          skip: offset
+        } : {})
       });
       return {
         status: ResponseType.SUCCESS,

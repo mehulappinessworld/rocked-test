@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateContentDto, GetContentFilterDto, OrderBYContent, SortBy, UpdateContentDto } from './dto/create-content.dto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { AllContentDto, CreateContentDto, GetContentFilterDto, OrderBYContent, SortBy, UpdateContentDto } from './dto/create-content.dto';
 import { PrismaServise } from 'src/database/prisma.service';
 import { ResponseType } from 'src/domain/helper';
 import { Prisma } from "@prisma/client"
@@ -9,6 +9,22 @@ export class ContentService {
   constructor(private readonly prismaServise: PrismaServise) { }
   async create(createContentDto: CreateContentDto) {
     try {
+      const check = await this.prismaServise.content.findFirst({
+        where: {
+          title: createContentDto?.title
+        },
+        include: {
+          tags: true,
+        },
+      });
+      if (check) {
+        throw new BadRequestException("Title Must be unique");
+      }
+      if (createContentDto.publish_date) {
+        if (new Date(createContentDto.publish_date) < new Date()) {
+          throw new NotFoundException(`Publib Date Must be Future Date`)
+        }
+      }
       const content = await this.prismaServise.content.create({
         data: {
           ...createContentDto,
@@ -32,9 +48,9 @@ export class ContentService {
   async findAll(query: GetContentFilterDto) {
     try {
       //pagination
-      const limit = +query.limit || 3;
-      const page = +query.page || 1;
-      const offset = ((page - 1) * limit)
+      const limit = +query.limit || null;
+      const page = +query.page || null;
+      const offset = (((page || 0) - 1) * limit)
 
       //filter
       const where: Prisma.ContentWhereInput = {
@@ -83,8 +99,10 @@ export class ContentService {
           tags: true,
         },
         orderBy: orderBy,
-        take: limit,
-        skip: offset
+        ...(limit ? {
+          take: limit,
+          skip: offset
+        } : {})
       });
       return {
         status: ResponseType.SUCCESS,
@@ -114,7 +132,7 @@ export class ContentService {
       throw err
     }
   }
-  async allWatched(id: number) {
+  async allWatched(id: number, allContentDto: AllContentDto) {
     try {
       const check = await this.prismaServise.content.findUnique({
         where: {
@@ -122,6 +140,14 @@ export class ContentService {
         },
         select: {
           UsersContentWatch: {
+            ...(allContentDto?.email ?
+              {
+                where: {
+                  user: {
+                    email: allContentDto?.email
+                  }
+                }
+              } : {}),
             select: {
               user: {
                 select: {
@@ -150,9 +176,18 @@ export class ContentService {
           id: +id
         }
       });
+      if (!check) {
+        throw new NotFoundException('Content not Found')
+      }
+
       if (updateContentDto.status) {
         if (check.status == updateContentDto.status) {
           throw new NotFoundException(`Content Already in ${updateContentDto.status} Sattus`)
+        }
+      }
+      if (updateContentDto.publish_date) {
+        if (new Date(updateContentDto.publish_date) < new Date()) {
+          throw new NotFoundException(`Publib Date Must be Future Date`)
         }
       }
       if (check) {

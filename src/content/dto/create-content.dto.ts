@@ -76,6 +76,11 @@ export class CreateContentDto {
     })
     tags: string[]
 }
+
+export class AllContentDto {
+    @ApiPropertyOptional()
+    email: string
+}
 export class UpdateContentDto {
     @ApiPropertyOptional()
     code: string
